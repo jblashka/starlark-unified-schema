@@ -28,3 +28,19 @@ func (p *Processor) ProcessModule(name string, visitor output.Visitor) error {
 
 	return nil
 }
+
+func (p *Processor) ProcessAllModules(visitor output.Visitor) error {
+	names, err := p.loader.GetAllModuleNames()
+	if err != nil {
+		return err
+	}
+
+	for _, name := range names {
+		err := p.ProcessModule(name, visitor)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

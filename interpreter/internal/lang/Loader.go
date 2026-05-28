@@ -3,6 +3,7 @@ package lang
 import (
 	"os"
 	"path"
+	"path/filepath"
 
 	"go.starlark.net/starlark"
 	"go.starlark.net/syntax"
@@ -49,6 +50,35 @@ func (l *Loader) Load(thread *starlark.Thread, name string) (starlark.StringDict
 	l.modules[name] = globals
 
 	return globals, nil
+}
+
+func (l *Loader) GetAllModuleNames() ([]string, error) {
+	if l.module_names != nil {
+		return l.module_names, nil
+	}
+
+	entries, err := os.ReadDir(l.path)
+	if err != nil {
+		return nil, err
+	}
+
+	names := make([]string, 0, len(entries))
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		if filepath.Ext(entry.Name()) != ".star" {
+			continue
+		}
+
+		names = append(names, entry.Name())
+	}
+
+	l.module_names = names
+
+	return names, nil
 }
 
 func (l *Loader) RegisterBuiltin(name string, callback func(thread *starlark.Thread, fn *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error)) {
